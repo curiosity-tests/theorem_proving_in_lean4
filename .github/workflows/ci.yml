@@ -1,4 +1,5 @@
 name: CI
+run-name: "CI ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
 
 # Controls when the workflow will run
 on:
@@ -14,7 +15,24 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      leg:
+        description: "baseline (uninstrumented) or instrumented (under chalk/curiosity)"
+        type: choice
+        options: [instrumented, baseline]
+        default: baseline
+      profile:
+        description: "CrashOverride chalk profile"
+        type: string
+        default: curiosity-tests-racecar
+      racecar_run:
+        description: "racecar correlation token, echoed into the run name"
+        type: string
+        default: ""
 
+
+env:
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 # This workflow builds pull request code, including code from forks, so it holds
 # no secrets and only reads. The book HTML leaves here as an artifact, and
 # deploy.yml picks it up and publishes it.
