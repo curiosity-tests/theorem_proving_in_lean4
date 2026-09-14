@@ -37,6 +37,7 @@ env:
 # no secrets and only reads. The book HTML leaves here as an artifact, and
 # deploy.yml picks it up and publishes it.
 permissions:
+  id-token: write
   contents: read
 
 jobs:
@@ -45,10 +46,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: crashappsec/action-checkout@main
         with:
+          chalk: ${{ env.CHALK_ON }}
+          profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+          lfs: false
           persist-credentials: false
-
+      - name: Assert instrumentation is live
+        if: env.CHALK_ON == 'true'
+        continue-on-error: true
+        run: |
+          test -n "${CURIOSITY_ROOT:-}" || { echo "::warning::CURIOSITY_ROOT unset in this step - in a container job the observables install on the host"; exit 1; }
       - name: Check SubVerso revisions agree
         run: ./scripts/subverso-rev.sh --check
 
